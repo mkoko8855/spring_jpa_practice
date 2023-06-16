@@ -18,14 +18,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "tbl_product") //테이블이 Product인데 바꾸고싶으면 이렇게
 public class Product {
-    @Id //그리고 누가 PK인지 알려줘야 한다. id;가 PK라면, @Id를 달아주자.
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //값을 생성해줘. 고유한 값으로! -> mysql에서 사용하는 autoincreament 이다. 이 아노테이션의 효과로 prod_id컬럼이 만들어지면 auto_increament가 자동으로 붙는다. AUTO는 알아서 jpa한테 전략을 구상해라(웬만하면 사용X).
+    @Id //그리고 누가 PK인지 알려줘야 한다. id;가 PK라면, @Id를 달아주자. 아니면 테이블 생성 안되기 때문에 꼭 PK 표시 해줘야함.
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //생성전략. 즉, 값을 생성해줘. 고유한 값으로! -> mysql에서 사용하는 autoincreament 이다. 이 아노테이션의 효과로 prod_id컬럼이 만들어지면 auto_increament가 자동으로 붙는다. AUTO는 알아서 jpa한테 전략을 구상해라(웬만하면 사용X). 일반적으로 IDENTITY씀
     @Column(name = "prod_id") //만약 아래변수 id를 바꾸고싶다면, @Column붙여서 써주면된다. 클래스도 마찬가지다.
                               //테이블도 Product가 아니라 @Table(name = "tbl_product") 위에다가 이런식으로 해도된다.
 
     private long id;
 
-    @Column(name = "prod_nm", nullable = false, length = 30) //이런식으로 원하는대로 바꿀 수 있다.
+    @Column(name = "prod_nm", nullable = false, length = 30) //이런식으로 원하는대로 바꿀 수 있다. 이 줄 안써도 알아서 카멜케이스로 바꿔줌.
     private String Name;
 
     private int price;

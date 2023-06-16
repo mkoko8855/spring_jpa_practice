@@ -26,8 +26,7 @@ class ProductRepositoryTest {
     @Autowired //객체를 주입받을꺼야. jpa가 갖다줄것임
     ProductRepository productRepository;
 
-    @BeforeEach
-        //테스트 돌리기 전에 실행해야함
+    @BeforeEach //테스트 돌리기 전에 실행해야함
     void insertDummyDate() { //안에 더미데이터를 쫙 작성하고, 수정 조회 삭제 메서드 등을 돌려 볼 수 있겠다
         Product p1 = Product.builder().Name("아이폰").category(ELECTRONIC).price(1200000).build(); //이 모양대로 빌드해줘~
         /*원래는 p1.setName("아이폰")이런식으로 했었는데, @Builder를 이용해서 객체 초기화를 쉽게 할 수 있다. */
@@ -39,7 +38,7 @@ class ProductRepositoryTest {
 
 
 
-    //테스트 메서드 선언(메모장에 tdd로 설정해서 단축언어 tdd만쳐서 만듦)
+    //테스트 메서드 선언(메모장에 적었는데, tdd로 설정해서 단축언어 tdd만쳐서 만듦)
 //    @Test
 //    @DisplayName("상품 4개를 데이터베이스에 저장해야 한다.")
 //    void testSave() {
@@ -67,6 +66,7 @@ class ProductRepositoryTest {
         Product save2 = productRepository.save(p2);
         Product save3 = productRepository.save(p3);
         Product save4 = productRepository.save(p4);
+        //when절 썼다고 db에 바로안들어감. 어딘가에 모아놓고 한번에 할..껄?
 
 
 
@@ -145,6 +145,40 @@ class ProductRepositoryTest {
         Product foundProduct = product.get(); //이렇게 바로 꺼낼 수도 있음
         //assertNotNull(foundProduct);
     }
+    
+    
+    
+        @Test
+        @DisplayName("2번 상품의 이름과 가격을 변경해야 한다.")
+        void testModify() {
+            //given
+            long id = 2L;
+            String newName = "짜장면";
+            int newPrice = 6000;
+
+            //when
+            //업데이트에 해당하는 메서드를 부르면되지않나? > JPA는 업데이트문이 따로 없다.
+            //조회를 한 후에, setter메서드로 변경하면 자동으로 update문이 나간다.
+            //즉, 일단 DB에서 가져오고, 조회한 내용을 setter로 변경하자.
+            //setter로 변경 후, 다시 save(인서트문)을 호출해야 한다.
+            //근데 기존에 존재하는 값이니 update로 바껴서 들어간다는 것이다.
+
+            Optional<Product> product = productRepository.findById(id); //조회를했다. 옵셔널 타입으로 product를 받았다.
+            product.ifPresent(p -> { //만약, 널이 아니라면
+                p.setName(newName);
+                p.setPrice(newPrice);
+
+                productRepository.save(p); //save는 원래 insert문인데 insert가 아니라 jpa가 update로 판단해서 처리를 해준다.
+
+            });
+            //then
+            assertTrue(product.isPresent()); //검증
+            
+            Product p = product.get(); //짜장면으로 바꼈는지(업데이트 문이 나갔는지) 확인해보자
+            assertEquals("짜장면", p.getName()); //탕수육에서 짜장면으로 바꼈는지 황긴.
+        }
+    
+    
 }
 
 
