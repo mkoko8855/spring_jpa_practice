@@ -12,7 +12,7 @@ spring:
     #show-sql: true 기본값은 false인데, 이거 true해주면 jpa가 실행시킨 자동생성쿼리를 보여주는 옵션
     database-platform: org.hibernate.dialect.MySQL8Dialect #로그가 나올 때, 어떤 DB에 맞게 나오는지를 설정 (방언 설정이라고도 한다)
     hibernate:
-      ddl-auto: create #생성명령이 있으면 생성하라는 것이다. ddl명령있으면 항상 자동생성하거라 라는 명령어다. 개발단계가 아닌 서비스단계에서는 이거 create가 아니라 update 또는 none으로바꿔줘야한다.
+      ddl-auto: update #생성명령이 있으면 생성하라는 것이다. ddl명령있으면 항상 자동생성하거라 라는 명령어다. 개발단계가 아닌 서비스단계에서는 이거 create가 아니라 update 또는 none으로바꿔줘야한다.
     #properties:
     #  hibernate:
     #    format_sql: true #sql을 줄바꿈해서 깔끔하게 출력하는 명령
