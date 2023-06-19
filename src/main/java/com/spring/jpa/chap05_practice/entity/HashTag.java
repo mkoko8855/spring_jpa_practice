@@ -1,4 +1,4 @@
-package com.spring.jpa.chpa05_practice.entity;
+package com.spring.jpa.chap05_practice.entity;
 
 
 import lombok.*;

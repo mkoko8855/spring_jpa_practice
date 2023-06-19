@@ -1,4 +1,4 @@
-package com.spring.jpa.chpa05_practice.entity;
+package com.spring.jpa.chap05_practice.entity;
 
 
 import lombok.*;
@@ -32,6 +32,12 @@ public class Post {
     @Column(nullable = false) //널불가.
     private String writer;
 
+    
+    //제목
+    @Column(nullable = false)
+    private String title;
+
+
 
     //내용
     private String content;
@@ -50,7 +56,7 @@ public class Post {
     
     //양방향 설정할거임. 여긴 기준을 보면 1이고 쟤가 N이니 원투매니.
     @OneToMany(mappedBy = "post" ) //맵드바이에는 해쉬태그 엔터티보면 Post post;라고 변수선언해줬으니, 저거적자.
-    private List<HashTag> hashTags = new ArrayList<>(); //널 방지를 위해 초기화.
+    private List<HashTag> hashTags = new ArrayList<>(); //널 방지를 위해 초기화.  조회 용도로사용한다!
 
 
 
