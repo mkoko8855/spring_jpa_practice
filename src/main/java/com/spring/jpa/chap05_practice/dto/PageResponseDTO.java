@@ -48,9 +48,9 @@ public class PageResponseDTO<T> {
         
         
         //보정 부분
-        int realEnd = pageData.getTotalPages();
+        int realEnd = pageData.getTotalPages(); //총페이지 수가 몇인지 알려준다. 얘가 있기에, 우리가 끝페이지 보정이 필요X. 378에서 getTotalPages부르면 38페이지로 바로 값나오겠지.
         
-        if(realEnd < this.endPage){
+        if(realEnd < this.endPage){ //공식에 의해서 끝페이지 보정해보자 realEnd가 37이고 this.endPage가 40이면, 37이 realEnd페이지가 된다.
             this.endPage = realEnd; //끝페이지 보정.
         }
         this.prev = startPage > 1;     //시작페이지가 1보다 크면 이전버튼

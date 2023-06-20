@@ -1,9 +1,6 @@
 package com.spring.jpa.chap05_practice.service;
 
-import com.spring.jpa.chap05_practice.dto.PageDTO;
-import com.spring.jpa.chap05_practice.dto.PageResponseDTO;
-import com.spring.jpa.chap05_practice.dto.PostDetailResponseDTO;
-import com.spring.jpa.chap05_practice.dto.PostListResponseDTO;
+import com.spring.jpa.chap05_practice.dto.*;
 import com.spring.jpa.chap05_practice.entity.Post;
 import com.spring.jpa.chap05_practice.repository.HashTagRepository;
 import com.spring.jpa.chap05_practice.repository.PostRepository;
@@ -49,10 +46,10 @@ public class PostService {
             Page<Post> posts = postRepository.findAll(pageable); //findall을 부르면서 페이지 정보를 전달하고, jpa가 우리에게 page파일의 객체를 리턴해준다.
 
 
-            //게시물 정보만 꺼내기
+            //게시물 정보만 꺼내기 -> 게시물 정보는 위의 페이지 객체인 posts에서 posts.getContent하면 페이지 게시물 정보를 꺼낼 수 있음. 근데 그냥 줄 수 없으니, <Post>타입을 <PostDetailResponseDTO>로 변환해야 하기 위해, 생성자를 하나 선언해야한다.
             List<Post> postList = posts.getContent(); //조회한 내용을 꺼낼 수 있음. 그러나 <Post>는 엔터티타입이다. List<Post>를 아래 .posts()에 전달해야 하니, <Post>는 엔터티타입이 아니라 <PostDetailREsponseDTO>타입이다. 저걸로 바꿔줘야한다.
 
-            //바꿔주자. 이걸 생성자에서 처리할것이다. PostDetailREsponseDTO로가자. map과 stream을 이용해서 적어주고 다시 와서 여기 적어주자.
+            //바꿔주자. 이걸 생성자에서 처리할것이다. PostDetailREsponseDTO로가자. 차곡차곡 적어주되, 해쉬태그는 map과 stream을 이용해서 적어주고 다시 와서 여기 적어주자.
             List<PostDetailResponseDTO> detailList = postList.stream()
                     .map(post -> new PostDetailResponseDTO(post))
                     .collect(Collectors.toList());
@@ -74,4 +71,20 @@ public class PostService {
 
         }
 
+        //개별조회(1개)
+    public PostDetailResponseDTO getDetail(long id) {
+        Post postEntity = postRepository.findById(id)   //findById는 리턴타입이 옵셔널이다. 옵셔널은 널체크다. 글번호로 줬는데 만약 널이왔다면? orElseThrow쓰자 -> 옵셔널로안받고 Post로받았다.
+                .orElseThrow(
+                        //만약 findById하면서 id줬는데 널이왔다면, id가잘못된거겠지. 조회가안되니까.
+                        () -> new RuntimeException(id + "번 게시물이 존재하지 않습니다.")
+                );
+        return new PostDetailResponseDTO(postEntity);//PostDetailREsponseDTO가 생성자 선언해놨으니 알아서 변환해준다. 엔터티타입을 줬으니 dto로 변환해주겠지~
     }
+
+    public PostDetailResponseDTO insert(PostCreateDTO dto) {
+
+
+
+        return null;
+    }
+}
