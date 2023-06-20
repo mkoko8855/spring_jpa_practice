@@ -1,11 +1,12 @@
 package com.spring.jpa.chap05_practice.api;
 
 
-import com.spring.jpa.chap05_practice.dto.PageDTO;
-import com.spring.jpa.chap05_practice.dto.PostCreateDTO;
-import com.spring.jpa.chap05_practice.dto.PostDetailResponseDTO;
-import com.spring.jpa.chap05_practice.dto.PostListResponseDTO;
+import com.spring.jpa.chap05_practice.dto.*;
 import com.spring.jpa.chap05_practice.service.PostService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +15,14 @@ import org.springframework.validation.FieldError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController //레스트방식만 사용할꺼다. 리액트니까. 서버는 view페이지를 만들어주지않는다. 화면단에서 다 할것! 스부는 JSP 라이브러리받고 뷰리졸버도 받아야 레가시처럼쓸 수 있음.
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/posts") //컨트롤러는 요청을 받아야하니 저렇게 적어주자.
+@Tag(name = "post API", description = "게시물 조회, 등록 및 수정 삭제 API") //컨트롤러에 대한 설명
 public class PostApiController {
 
     //규칙을 정하고 로직을 만들자
@@ -29,7 +32,7 @@ public class PostApiController {
         게시물 목록 조회 : /posts   ->  get방식으로 처리할 거다. posts라는 요청이 get으로 오면 목록조회이다.
         게시물 개별 조회 : /posts/{id} -> 글번호가 get방식으로 오면, 개별조회이다.
         게시물 등록 :     /posts -> post방식으로 오면 등록요청이다.
-        게시물 수정 :     /posts/{id} -> put아니면 Patch로 오면 수정.
+        게시물 수정 :     /posts -> put아니면 Patch로 오면 수정.
         게시물 삭제 :     /posts/{id} 가 오는데, delete방식으로 오면 삭제.
 
         즉, 최대한 REST방식으로 하자.
@@ -69,7 +72,7 @@ public class PostApiController {
 
     //게시물 개별 조회(게시물 1개가져올것)
     @GetMapping("/{id}") //id는 pathVariable로 뜯어오자.
-    public ResponseEntity<?> detail(@PathVariable long id) {
+    public ResponseEntity<?>detail(@PathVariable long id) {
         log.info("/api/v1/post/{}: GET", id); //로그간단히찍어보자.
 
         try {
@@ -85,7 +88,19 @@ public class PostApiController {
     }
 
 
-    //등록
+
+
+
+
+    @Operation(summary = "게시물 작성", description = "게시물 작성을 담당하는 메서드이다.")  //> 포스트 매핑을 진행하는 메서드의 간단한 설명을 달고싶을때.
+    @Parameters(
+            {
+                    @Parameter(name = "writer", description = "게시물의 작성자 이름을 쓰세요!", example = "김뽀삐", required = true),
+                    @Parameter(name = "title", description = "게시물의 제목을 쓰세요!", example = "제목제목", required = true),
+                    @Parameter(name = "content", description = "게시물의 내용을 쓰세요!", example = "내용내용"),
+                    @Parameter(name = "hashTags", description = "게시물에 해시태그를 작성하세요!", example = "['하하', '호호']")
+            }
+    )
     @PostMapping
     public ResponseEntity<?> create(@Validated @RequestBody PostCreateDTO dto, BindingResult result) { //리퀘스트바디붙여야 자바객체타입으로 변환되어 받을수있음
         log.info("/api/v1/posts: POST방식으로온다! - payload: {}", dto); //payload는 전달되는 정보값이다. 파라미터와는 좀 다르다. 바디에 전송되는 값을 페이로드라고한다.
@@ -98,17 +113,8 @@ public class PostApiController {
         }
 
         //만약 result가 에러발견했다?
-        if (result.hasErrors()) { //트루면, 입력값 검증에 걸린 것이다. 안걸리면 해즈에러는 false로 통과된다.
-            //에러의 정보를 받아보자
-            List<FieldError> fieldErrors = result.getFieldErrors();
-            //어떤 입력값에 걸렸는지 출력 다 해보자
-            fieldErrors.forEach(err -> { //객체가 err에 쌓일때마다 로그찍자
-                log.warn("invalid client data - {}", err.toString());
-            });
-            //문제있다. 검증에 걸렸다고 클라이언트에다가도 말해줘야지
-            return ResponseEntity.badRequest()
-                    .body(fieldErrors); //바디에 담아서 전달한다.
-        }
+        ResponseEntity<List<FieldError>> fieldErrors = getValidatedResult(result);
+        if (fieldErrors != null) return fieldErrors;
 
         //if문에 걸리지 않았다면 postservice에 인서트를 부르면서 클라이언트로부터 전달받은 dto를 전달하자
         try {
@@ -119,11 +125,73 @@ public class PostApiController {
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError() //서버에러니 배드리퀘스트는 안어울림
-                    .body("서버 터졌어..원인 :" +  e.getMessage());
+                    .body("서버 터졌어..원인 :" + e.getMessage());
         }
 
 
     }
+
+
+
+
+
+    //게시물 수정(0620)
+    @RequestMapping(method = {RequestMethod.PATCH, RequestMethod.PUT}) //이러면 풋과 패치를 한 번에 쓸 수 있긴함.
+    public ResponseEntity<?> update(@Validated @RequestBody PostModifyDTO dto, BindingResult result, HttpServletRequest request) { //어떤게 올줄 알아야 dto를 꾸미겠지. 클라이언트와 소통해야돼~ 소통했다고 치고. PostModifyDTO 라고하자.   result는 검증결과가지고있음.
+
+        log.info("/api/v1/posts {} - dto: {}", request.getMethod(), dto);
+
+
+        ResponseEntity<List<FieldError>> fieldErrors = getValidatedResult(result);
+        if (fieldErrors != null) return fieldErrors;
+
+
+        PostDetailResponseDTO responseDTO = postService.modify(dto);
+
+        return ResponseEntity.ok().body(responseDTO);
+
+    }
+
+
+    //삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable long id) {
+        log.info("/api/v1/posts/{} DELETE!", id);
+
+        try {
+            postService.delete(id); //매개값으론 id주겠지. 리턴도딱히..필요없지 삭제된걸 화면단에표현은..X
+
+            return ResponseEntity.ok("DEL SUCCESS!");
+
+        } catch (Exception e) { //문제가 발생한다면
+            e.printStackTrace();
+            return ResponseEntity
+                    .internalServerError()
+                    .body(e.getMessage());
+        }
+    }
+
+
+    private static ResponseEntity<List<FieldError>> getValidatedResult(BindingResult result) {
+        if (result.hasErrors()) { //트루면, 입력값 검증에 걸린 것이다. 안걸리면 해즈에러는 false로 통과된다.
+            //에러의 정보를 받아보자
+            List<FieldError> fieldErrors = result.getFieldErrors();
+            //어떤 입력값에 걸렸는지 출력 다 해보자
+            fieldErrors.forEach(err -> { //객체가 err에 쌓일때마다 로그찍자
+                log.warn("invalid client data - {}", err.toString());
+            });
+            //문제있다. 검증에 걸렸다고 클라이언트에다가도 말해줘야지
+            return ResponseEntity.badRequest()
+                    .body(fieldErrors);
+        }
+        return null;
+    }
+
+
+
+
+
+
 
 
 

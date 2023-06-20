@@ -74,13 +74,28 @@ public class PostService {
 
         //개별조회(1개)
     public PostDetailResponseDTO getDetail(long id) {
-        Post postEntity = postRepository.findById(id)   //findById는 리턴타입이 옵셔널이다. 옵셔널은 널체크다. 글번호로 줬는데 만약 널이왔다면? orElseThrow쓰자 -> 옵셔널로안받고 Post로받았다.
-                .orElseThrow(
+      //  Post postEntity = postRepository.findById(id)   //findById는 리턴타입이 옵셔널이다. 옵셔널은 널체크다. 글번호로 줬는데 만약 널이왔다면? orElseThrow쓰자 -> 옵셔널로안받고 Post로받았다.
+         //       .orElseThrow(
                         //만약 findById하면서 id줬는데 널이왔다면, id가잘못된거겠지. 조회가안되니까.
-                        () -> new RuntimeException(id + "번 게시물이 존재하지 않습니다.")
-                );
+                     //   () -> new RuntimeException(id + "번 게시물이 존재하지 않습니다.")
+               // );
+
+
+        Post postEntity = getPost(id);
+
         return new PostDetailResponseDTO(postEntity);//PostDetailREsponseDTO가 생성자 선언해놨으니 알아서 변환해준다. 엔터티타입을 줬으니 dto로 변환해주겠지~
     }
+
+
+    private Post getPost(long id) {
+        Post postEntity = postRepository.findById(id)
+                .orElseThrow(
+                        () -> new RuntimeException(id + "번 게시물이 존재하지 않습니다.")
+                );
+        return postEntity;
+    }
+
+
 
     //게시물 저장 (해시태그는 저장을 따로해야함)
     public PostDetailResponseDTO insert(final PostCreateDTO dto) throws RuntimeException { //final선언하면 값못바꿈. 서비스가 못건들고 바로 값때려넣게. 값을 뽑을 순 있지만 값변경은못함.
@@ -116,4 +131,35 @@ public class PostService {
         }
         return new PostDetailResponseDTO(saved); //엔터티를 dto를 변환해서 리턴하겠다.
     }
+
+
+
+
+    public PostDetailResponseDTO modify(PostModifyDTO dto) {
+        //수정 전 데이터를 조회
+        Post postEntity = getPost(dto.getPostNo());
+
+        //수정 시작 -> jpa가 엔터티가 바뀌고 있구나라고 인식함. 그게 save된다면 update문 때리자.
+        postEntity.setTitle(dto.getTitle());
+        postEntity.setContent(dto.getContent());
+
+        //수정 완료
+        Post modifiedPost = postRepository.save(postEntity);
+
+        return new PostDetailResponseDTO(modifiedPost);
+
+
+    }
+
+
+    //삭제 메서드
+    public void delete(long id) {
+
+        postRepository.deleteById(id);
+    }
+
+
+
+
+
 }

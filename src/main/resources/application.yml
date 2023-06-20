@@ -20,3 +20,9 @@ spring:
 
   logging.level:
     org.hibernate.SQL: debug #즉, 로그를 찍어주라. 이거쓰면 위에 show-sql: true; 로 해준거 지워야함! 주석처리해주자.
+
+
+    # swagger setting  0620    -> 사이트 접속한 상대에게 명세서를 제공할껀데,
+  springdoc:
+    swagger-ui:
+      path: /myapi.html  #명세서를 제공할 경로인 문서의 페이지가 어디? -> myapi는 마음대로지어도됨.
