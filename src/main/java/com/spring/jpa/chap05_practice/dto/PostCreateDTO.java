@@ -1,5 +1,6 @@
 package com.spring.jpa.chap05_practice.dto;
 
+import com.spring.jpa.chap05_practice.entity.Post;
 import lombok.*;
 
 import javax.validation.constraints.NotBlank;
@@ -32,6 +33,22 @@ public class PostCreateDTO {
 
 
     private List<String> hashTags; //굳이 엔터티타입으로 받을필요없지. 문자몇개만오는데.
+
+
+
+    //dto를 엔터티로 변환하는 메서드
+    public Post toEntity(){
+        return Post.builder()
+                .writer(this.writer)
+                .content(this.content)
+                .title(this.title)
+                //.hashTags()는 여기서 넣는게 아니다. Post테이블이 연관관계의 주인이 아니기 때문이다.
+                .build();
+    }
+
+
+
+
 
 }
 

@@ -56,9 +56,20 @@ public class Post {
     
     //양방향 설정할거임. 여긴 기준을 보면 1이고 쟤가 N이니 원투매니.
     @OneToMany(mappedBy = "post" ) //맵드바이에는 해쉬태그 엔터티보면 Post post;라고 변수선언해줬으니, 저거적자.
+    @Builder.Default //이 값을 우선시한다는 의미이다. 즉, 특정 필드를 지정한 값으로 초기화한다.(0620)
     private List<HashTag> hashTags = new ArrayList<>(); //널 방지를 위해 초기화.  조회 용도로사용한다!
 
 
+
+    //양방향 매핑에서 리스트쪽에 데이터를 추가하는 편의 메서드 생성
+    public void addHashTag(HashTag hashTag){
+        //매개값으로 전달받은 hashTag에 add하겠다.
+        hashTags.add(hashTag); //핵심.
+
+        if(this != hashTag.getPost()){ //혹시모를상황을위해 작성. -> 해쉬태그 부른 이 객체가 해쉬태그가부른 getPost내용과 다르다면 맞춰주겠다.
+            hashTag.setPost(this);
+        }
+    }
 
 
 }

@@ -111,10 +111,20 @@ public class PostApiController {
         }
 
         //if문에 걸리지 않았다면 postservice에 인서트를 부르면서 클라이언트로부터 전달받은 dto를 전달하자
-        PostDetailResponseDTO responseDTO = postService.insert(dto); //지금 메서드 없으니 선언해야됨. -> 인서트 되는 데이터를 다시 클라이언트로 전달할 것이다. 싱글페이지어플리케이션이잖아 우리는~ 리다이렉트써도되긴해.
+        try {
+            PostDetailResponseDTO responseDTO = postService.insert(dto); //지금 메서드 없으니 선언해야됨. -> 인서트 되는 데이터를 다시 클라이언트로 전달할 것이다. 싱글페이지어플리케이션이잖아 우리는~ 리다이렉트써도되긴해.
+            //에러발생하지 않은 try문이니
+            return ResponseEntity.ok()
+                    .body(responseDTO);
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError() //서버에러니 배드리퀘스트는 안어울림
+                    .body("서버 터졌어..원인 :" +  e.getMessage());
+        }
 
 
     }
+
 
 
 }

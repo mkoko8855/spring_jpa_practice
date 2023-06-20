@@ -1,6 +1,7 @@
 package com.spring.jpa.chap05_practice.service;
 
 import com.spring.jpa.chap05_practice.dto.*;
+import com.spring.jpa.chap05_practice.entity.HashTag;
 import com.spring.jpa.chap05_practice.entity.Post;
 import com.spring.jpa.chap05_practice.repository.HashTagRepository;
 import com.spring.jpa.chap05_practice.repository.PostRepository;
@@ -81,10 +82,38 @@ public class PostService {
         return new PostDetailResponseDTO(postEntity);//PostDetailREsponseDTO가 생성자 선언해놨으니 알아서 변환해준다. 엔터티타입을 줬으니 dto로 변환해주겠지~
     }
 
-    public PostDetailResponseDTO insert(PostCreateDTO dto) {
+    //게시물 저장 (해시태그는 저장을 따로해야함)
+    public PostDetailResponseDTO insert(final PostCreateDTO dto) throws RuntimeException { //final선언하면 값못바꿈. 서비스가 못건들고 바로 값때려넣게. 값을 뽑을 순 있지만 값변경은못함.
 
 
+        //일단 때려넣어야되니 save -> save매개값으로 dto인데 엔터티로바꾸는 작업이 필요하다. -> 작업해주고 와서 save()에 작성해주자.
+        Post saved = postRepository.save(dto.toEntity());//변환하면 엔터티 객체로 리턴이 된다!
+        //saved에는 해시태그없음.
 
-        return null;
+
+        //해시태그 저장
+        List<String> hashTags = dto.getHashTags();
+
+        //게시글 인서트가 진행되는데, 해시태그를 안썼을수도있잖아. 안썼으면 굳이 저장할필요가없지
+        if(hashTags != null && hashTags.size() > 0 ) { //이러면 해시태그가 존재하니까
+            hashTags.forEach(ht -> { //문자열이 ht로 가고, 받을 때마다 해쉬태그생성.
+                HashTag savedTag = hashTagRepository.save( //이 save()는 해쉬태그 엔터티를 받겠지.
+                HashTag.builder()
+                        .tagName(ht)
+                        .post(saved) //포스트는 우리가 미리 준비해논, 위에 //게시물 저장  의 postRepository.save(dto.toEntity)가서 지역변수삽입하자. 그럼 saved로 바꿨다.
+                        .build()
+
+                );
+                //Post Entity는 DB에 save를 진행할 때, HashTag에 대한 내용을 갱신하지 않는다.
+                //HashTag Entity는 따로 save를 진행한다.
+                //HasgTag는 연관관계의 주인이기 때문에 save를 진행할 때, 위 .post(saved) 즉, post가 같이 전달하기에
+                //DB와 entity와의 상태가 동일하지만, Post는 HashTag의 정보가 비어있는 상태이기 때문에
+                //Post entity에 상태를 맞춰주는(동기화)를 할 수 있는 연관관계 편의메서드를 선언해야한다.
+                //해야 추후에 진행되는 과정에서 문자 발생X (연관관계의 주인이 아니기 때문에 실시간으로 반영이 안되는 것이다. 해쉬태그가)
+                saved.addHashTag(savedTag); //이 saved는 위에있는 Post Saved(//게시물 저장) 이다.
+
+            });
+        }
+        return new PostDetailResponseDTO(saved); //엔터티를 dto를 변환해서 리턴하겠다.
     }
 }
