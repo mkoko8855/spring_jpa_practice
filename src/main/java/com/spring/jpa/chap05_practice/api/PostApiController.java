@@ -101,6 +101,8 @@ public class PostApiController {
                     @Parameter(name = "hashTags", description = "게시물에 해시태그를 작성하세요!", example = "['하하', '호호']")
             }
     )
+
+
     @PostMapping
     public ResponseEntity<?> create(@Validated @RequestBody PostCreateDTO dto, BindingResult result) { //리퀘스트바디붙여야 자바객체타입으로 변환되어 받을수있음
         log.info("/api/v1/posts: POST방식으로온다! - payload: {}", dto); //payload는 전달되는 정보값이다. 파라미터와는 좀 다르다. 바디에 전송되는 값을 페이로드라고한다.

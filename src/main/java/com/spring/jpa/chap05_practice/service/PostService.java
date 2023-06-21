@@ -87,9 +87,9 @@ public class PostService {
     }
 
 
-    private Post getPost(long id) {
+    private Post getPost(long id) {  //반복되는 로직을 메서드화 시킨 결과가 여기 코드다.
         Post postEntity = postRepository.findById(id)
-                .orElseThrow(
+                .orElseThrow( //postRepostsitory.findById(id)실행 결과가 존재하지 않는다면 아래 문구를 출력하겠다)
                         () -> new RuntimeException(id + "번 게시물이 존재하지 않습니다.")
                 );
         return postEntity;
@@ -106,12 +106,12 @@ public class PostService {
         //saved에는 해시태그없음.
 
 
-        //해시태그 저장
-        List<String> hashTags = dto.getHashTags();
+        //해시태그 저장(해시태그는 따로 저장해야함)
+        List<String> hashTags = dto.getHashTags(); //String 리스트에 있는 것들을 하나씩 꺼낼 것임.
 
         //게시글 인서트가 진행되는데, 해시태그를 안썼을수도있잖아. 안썼으면 굳이 저장할필요가없지
         if(hashTags != null && hashTags.size() > 0 ) { //이러면 해시태그가 존재하니까
-            hashTags.forEach(ht -> { //문자열이 ht로 가고, 받을 때마다 해쉬태그생성.
+            hashTags.forEach(ht -> { //ht변수로 String 리스트의 값들이 하나씩들어감. ht는 받을 때마다 해쉬태그생성.
                 HashTag savedTag = hashTagRepository.save( //이 save()는 해쉬태그 엔터티를 받겠지.
                 HashTag.builder()
                         .tagName(ht)
@@ -129,7 +129,7 @@ public class PostService {
 
             });
         }
-        return new PostDetailResponseDTO(saved); //엔터티를 dto를 변환해서 리턴하겠다.
+        return new PostDetailResponseDTO(saved); //엔터티를 dto를 변환해서 컨트롤러로 리턴하겠다.
     }
 
 
@@ -139,12 +139,12 @@ public class PostService {
         //수정 전 데이터를 조회
         Post postEntity = getPost(dto.getPostNo());
 
-        //수정 시작 -> jpa가 엔터티가 바뀌고 있구나라고 인식함. 그게 save된다면 update문 때리자.
+        //수정 시작 -> 변경(수정)하는 순간 jpa가 엔터티가 바뀌고 있구나라고 인식함. 그게 save된다면 update문 때리자.
         postEntity.setTitle(dto.getTitle());
         postEntity.setContent(dto.getContent());
 
         //수정 완료
-        Post modifiedPost = postRepository.save(postEntity);
+        Post modifiedPost = postRepository.save(postEntity); //다시 save진행!
 
         return new PostDetailResponseDTO(modifiedPost);
 
